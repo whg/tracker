@@ -1,13 +1,19 @@
-from pymongo import MongoClient
+import pymongo
 
-db_client = MongoClient()
+db_client = pymongo.MongoClient()
 db = db_client['tracker']
+version = float('.'.join(pymongo.version.split('.')[:2]))
 
 def set_db(name):
     db = db_client[name]
 
 def update(obj, name, value):
-    db[obj.__class__.__name__].update_one({
+    if version < 3.0:
+        func = db[obj.__class__.__name__].update
+    else:
+        func = db[obj.__class__.__name__].update_one
+
+    func({
         'name': name
     }, { '$set' : { 'value': value } }, upsert=True)
     
